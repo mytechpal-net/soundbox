@@ -1,7 +1,10 @@
 package main
 
-import "log"
+import (
+	"github.com/kmathelot/soundbox/server/routes"
+)
 
 func main() {
-	log.Println("Hello, World")
+	// Our server will live in the routes package
+	routes.Run()
 }
