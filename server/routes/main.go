@@ -4,12 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var e = gin.Default()
-
-// Run will start the server
-func Run() {
-	// add routes handler
+// Add routes to the main engine
+func AddRoutes(e *gin.Engine) {
 	addPingRoutes(e)
-
-	e.Run(":5000")
 }
