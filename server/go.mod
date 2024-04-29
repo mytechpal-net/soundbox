@@ -2,10 +2,7 @@ module github.com/kmathelot/soundbox-server
 
 go 1.22.2
 
-require (
-	github.com/gin-gonic/gin v1.9.1
-	github.com/kmathelot/soundbox v0.0.0-20240428083216-9044a077c181
-)
+require github.com/gin-gonic/gin v1.9.1
 
 require (
 	github.com/bytedance/sonic v1.11.6 // indirect
