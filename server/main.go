@@ -1,8 +1,6 @@
 package main
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,6 +10,8 @@ func main() {
 
 	// add routes
 	router.GET("/ping", ping)
+
+	router.POST("/login", login)
 
 	router.Run()
 }
@@ -25,8 +25,4 @@ func newRouter() *gin.Engine {
 	router.SetTrustedProxies(trustedProxies)
 
 	return router
-}
-
-func ping(c *gin.Context) {
-	c.JSON(http.StatusOK, "pong")
 }
