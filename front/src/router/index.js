@@ -40,7 +40,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from) => {
   // replace it with a dedicated logic
-  const isAuthenticated = false
+  const isAuthenticated = true
   if (
     // make sure the user is authenticated
     !isAuthenticated &&

@@ -3,28 +3,21 @@ import GoogleLogin from '@/components/GoogleLogin.vue'
 </script>
 
 <template>
-  <div class="content prose">
-    <h1 class="text-5xl">SoundBox</h1>
-    <GoogleLogin />
+  <div class="content">
+    <!-- Flex container for centering items -->
+    <div class="flex h-screen flex-col items-center justify-center">
+      <div class="max-h-auto mx-auto max-w-xl">
+        <!-- Login title and description -->
+        <div class="prose mb-2">
+          <h1 class="text-5xl font-semibold">SoundBox</h1>
+        </div>
+        <GoogleLogin />
+      </div>
+    </div>
   </div>
 </template>
 
-<style>
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
+<style scoped>
 .logo {
   height: 8em;
   padding: 1.5em;
