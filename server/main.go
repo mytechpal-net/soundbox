@@ -2,16 +2,26 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"github.com/kmathelot/soundbox-server/db"
 )
 
 func main() {
+	// init Db connexion
+	db.Init()
+	defer db.Close()
+
 	// Initialize router
 	router := newRouter()
 
-	// add routes
-	router.GET("/ping", ping)
-
 	router.POST("/login", login)
+
+	// Put the app routes under a group
+	app := router.Group("/app")
+	// Check session validity
+	app.Use(validateAuthorizationMiddleware())
+
+	app.GET("/ping", pong)
 
 	router.Run()
 }
