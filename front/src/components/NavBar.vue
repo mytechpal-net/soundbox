@@ -9,7 +9,7 @@ function toggleModal() {
 <template>
   <div class="navbar bg-base-100 shadow-md">
   <div class="flex-1">
-    <RouterLink class="btn btn-ghost text-xl" to="/soundbox">
+    <RouterLink class="btn btn-ghost text-xl" to="/home">
       SoundBox
     </RouterLink>
   </div>

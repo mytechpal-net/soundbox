@@ -9,7 +9,7 @@ import GoogleLogin from '@/components/GoogleLogin.vue'
       <div class="max-h-auto mx-auto max-w-xl">
         <!-- Login title and description -->
         <div class="prose mb-2">
-          <h1 class="text-5xl font-semibold">SoundBox</h1>
+          <h1 class="text-5xl text-center font-semibold">SoundBox</h1>
         </div>
         <GoogleLogin />
       </div>

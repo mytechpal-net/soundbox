@@ -2,9 +2,10 @@ import { createWebHistory, createRouter } from 'vue-router'
 
 import Login from '@/pages/Login.vue'
 import Default from '@/layouts/Default.vue'
-import HomeView from '@/views/HomeView.vue'
 import SoundBoxView from '@/views/SoundBoxView.vue'
 import SettingsView from '@/views/SettingsView.vue'
+
+import { userProfileStore } from '@/stores/userProfile'
 
 const routes = [
   {
@@ -19,10 +20,6 @@ const routes = [
     children: [
       {
         path: 'home',
-        component: HomeView
-      },
-      {
-        path: 'soundbox',
         component: SoundBoxView
       },
       {
@@ -40,7 +37,9 @@ const router = createRouter({
 
 router.beforeEach(async (to, from) => {
   // replace it with a dedicated logic
-  const isAuthenticated = true
+  const userStore = userProfileStore()
+
+  const isAuthenticated = userStore.hasSession
   if (
     // make sure the user is authenticated
     !isAuthenticated &&
