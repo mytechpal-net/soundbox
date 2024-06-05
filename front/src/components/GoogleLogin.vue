@@ -6,9 +6,10 @@ import { userProfileStore } from '@/stores/userProfile'
 const router = useRouter()
 const userStore = userProfileStore()
 const googleClientId = import.meta.env.VITE_APP_GOOGLE_APP
+const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
 
 async function loginCallback(loginData) {
-  const response = await fetch(this.apiUrl + "/login", {
+  const response = await fetch(apiUrl + "/login", {
     method: "POST",
     mode: "cors",
     credentials: 'include',

@@ -1,14 +1,15 @@
 <script setup>
 import { onMounted } from 'vue'
 
+const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
+
 onMounted(() => {
-  fetch(this.apiUrl + "/app/ping", {
+  fetch(apiUrl + "/app/ping", {
     credentials: 'include'
   })
   .then((response) => {
     console.log(response.status)
   })
-  .catch((err) => console.log(err.status))
 })
 </script>
 <template>
