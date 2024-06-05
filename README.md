@@ -18,8 +18,7 @@ Front application is in JS with vue.
 Server is written in Go
 
 ## Deploy
-
-
+WIP
 
 ## Run locally
 
@@ -27,8 +26,8 @@ Server is written in Go
 
 ```sh
 cd front
-yarn
-yarn dev
+npm install
+npm run dev
 ```
 
 ### Run the server
@@ -37,3 +36,4 @@ yarn dev
 cd server
 go run main.go
 ```
+
