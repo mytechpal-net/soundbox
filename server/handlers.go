@@ -92,13 +92,13 @@ func joinSoundBox(c *gin.Context) {
 		return
 	}
 
-	if !db.JoinSoundBox(joinData.UserId, joinData.SoundBoxCode) {
+	sb := db.JoinSoundBox(joinData.UserId, joinData.SoundBoxCode)
+	if sb == nil {
 		c.JSON(http.StatusBadRequest, "Incorrect values")
 		return
 	}
 
-	c.JSON(http.StatusOK, "OK")
-
+	c.JSON(http.StatusOK, sb)
 }
 
 // validateGoogleToken validates the given Google ID token

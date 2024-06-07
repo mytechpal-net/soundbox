@@ -145,20 +145,20 @@ func GetUserSb(userId string) *soundBox {
 Join a sb with a code.
 There is a Unique key on userId, then we need to check the result of the insert
 */
-func JoinSoundBox(userId string, soundBoxCode string) bool {
+func JoinSoundBox(userId string, soundBoxCode string) *soundBox {
 	sb := GetSoundboxByCode(soundBoxCode)
 
 	if sb == nil {
 		log.Printf("No matchin soundbox with the code %v\n", soundBoxCode)
-		return false
+		return nil
 	}
 
 	_, err := dbPool.Exec(context.Background(), "INSERT INTO user_soundbox (user_authid, soundbox_id) VALUES ($1, $2) returning soundbox_id", userId, sb.Id)
 	if err != nil {
 		log.Println("Unable to join the soundbox.")
 		log.Printf("%v\n", err)
-		return false
+		return nil
 	}
 
-	return true
+	return sb
 }

@@ -1,6 +1,8 @@
 <script setup>
-import { ref } from 'vue';
+import { ref } from 'vue'
+import { Cog6ToothIcon, SpeakerXMarkIcon, SpeakerWaveIcon } from '@heroicons/vue/24/outline'
 const isActive = ref(false)
+const mute = ref(true)
 
 function toggleModal() {
   isActive.value = !isActive.value
@@ -14,11 +16,19 @@ function toggleModal() {
     </RouterLink>
   </div>
   <div class="flex-none gap-2">
+    <label class="swap">
+  
+      <!-- this hidden checkbox controls the state -->
+      <input type="checkbox" v-model="mute"/>
+
+      <SpeakerWaveIcon class="swap-on size-8" />
+      <SpeakerXMarkIcon class="swap-off size-8" />
+    </label>
     <div class="dropdown dropdown-end">
       <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
-        <div class="w-10 rounded-full">
-          <img alt="Tailwind CSS Navbar component" src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-        </div>
+        <button class="btn btn-ghost btn-circle">
+          <Cog6ToothIcon class="size-8"/>
+        </button>
       </div>
       <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
         <li>

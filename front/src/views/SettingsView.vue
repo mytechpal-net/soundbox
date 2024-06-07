@@ -1,8 +1,10 @@
 <script setup>
 import { onMounted } from 'vue'
 
+const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
+
 onMounted(() => {
-  fetch(this.apiUrl + "/app/pong", {
+  fetch(apiUrl + "/app/pong", {
     credentials: 'include'
   })
   .then((response) => {

@@ -1,9 +1,14 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 const props = defineProps(['userId'])
-const code = defineModel()
+const code = ref(null)
 const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
 var errorJoin = ref(false)
+
+const soundBox = defineModel()
 
 async function JoinSoundBox() {
   errorJoin.value = false
@@ -16,9 +21,13 @@ async function JoinSoundBox() {
     })
   })
 
-  const result = await response.status
-  if (result !== 200) {
+  const status = await response.status
+  const result = await response.json()
+  if (status !== 200) {
     errorJoin.value = true
+  }
+  else {
+    soundBox.value = result
   }
 }
 </script>
