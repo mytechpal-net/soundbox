@@ -22,6 +22,10 @@ func main() {
 	app.Use(validateAuthorizationMiddleware())
 
 	app.GET("/ping", pong)
+	app.GET("/user/:authid", userContext)
+
+	app.GET("/soundbox/:id", soundBox)
+	app.POST("/sounbox/join", joinSoundBox)
 
 	router.Run()
 }

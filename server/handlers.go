@@ -65,6 +65,42 @@ func pong(c *gin.Context) {
 	c.JSON(http.StatusOK, "OK")
 }
 
+// Get soundbox per user
+// SB can be nil on purpose.
+func userContext(c *gin.Context) {
+	userSb := db.GetUserSb(c.Param("authid"))
+	c.JSON(http.StatusOK, userSb)
+}
+
+func soundBox(c *gin.Context) {
+	log.Println(c.Param("id"))
+	c.JSON(http.StatusOK, "OK")
+}
+
+type joinSbData struct {
+	SoundBoxCode string `json:"invitationCode"`
+	UserId       string `json:"user"`
+}
+
+func joinSoundBox(c *gin.Context) {
+	var joinData joinSbData
+
+	// bind post values
+	if err := c.BindJSON(&joinData); err != nil {
+		fmt.Printf("Error %v", err)
+		c.JSON(http.StatusBadRequest, "Incorrect values")
+		return
+	}
+
+	if !db.JoinSoundBox(joinData.UserId, joinData.SoundBoxCode) {
+		c.JSON(http.StatusBadRequest, "Incorrect values")
+		return
+	}
+
+	c.JSON(http.StatusOK, "OK")
+
+}
+
 // validateGoogleToken validates the given Google ID token
 func validateGoogleToken(ctx context.Context, audience string, token string) (*idtoken.Payload, error) {
 	payload, err := idtoken.Validate(ctx, token, audience)
