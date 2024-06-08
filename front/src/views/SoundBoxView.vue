@@ -2,11 +2,17 @@
 import { ref, onMounted } from 'vue'
 import { userProfileStore } from '@/stores/userProfile'
 import JoinSoundBox from '@/components/JoinSoundBox.vue'
+import SoundBoxApp from '../components/SoundBoxApp.vue';
 
 const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
 const userStore = userProfileStore()
 const loading = ref(true)
-const userSoundBox = ref(null)
+const userSoundBox = ref(false)
+
+const soundsList = [
+  { key: 'sfx-office-mouse.mp3', name: 'mouse' },
+  { key: 'sfx-office-stapler2.mp3', name: 'stapler' }
+]
 
 // Get user context
 const fetchData = async () => {
@@ -22,7 +28,7 @@ const fetchData = async () => {
 // Get sb sounds
 const getSounds = async() => {
   console.log('I\'m Helping')
-} 
+}
 
 // Get data on mounted
 onMounted(() => {
@@ -32,13 +38,13 @@ onMounted(() => {
 <template>
   <span class="loading loading-dots loading-lg" v-if="loading"></span>
   <div v-if="!loading">
-    <JoinSoundBox v-if="!userSoundBox" :userId="userStore.userId" v-model="userSoundBox" @update:modelValue="getSounds"></JoinSoundBox>
-    <div class="flex justify-center">
-      <div>
+    <div class="container mx-auto">
+      <JoinSoundBox v-if="!userSoundBox" :userId="userStore.userId" v-model="userSoundBox" @update:modelValue="getSounds"></JoinSoundBox>
+      <div v-if="userSoundBox">
         <button class="btn" onclick="uploadModal.showModal()">Upload something</button>
-        <div class="txt-center mt-5">
-          sounds goes here
-        </div>
+      </div>
+      <div v-if="userSoundBox">
+        <SoundBoxApp :soundsList="soundsList" />
       </div>
     </div>
   </div>

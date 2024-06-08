@@ -4,7 +4,7 @@ import { onMounted } from 'vue'
 const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
 
 onMounted(() => {
-  fetch(apiUrl + "/app/pong", {
+  fetch(apiUrl + "/app/ping", {
     credentials: 'include'
   })
   .then((response) => {
@@ -13,5 +13,5 @@ onMounted(() => {
 })
 </script>
 <template>
-  <h2>Settings</h2>
+  <h2>There's nothing to see here</h2>
 </template>

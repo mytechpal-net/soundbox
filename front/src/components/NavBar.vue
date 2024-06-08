@@ -1,11 +1,16 @@
 <script setup>
 import { ref } from 'vue'
 import { Cog6ToothIcon, SpeakerXMarkIcon, SpeakerWaveIcon } from '@heroicons/vue/24/outline'
+
 const isActive = ref(false)
 const mute = ref(true)
 
 function toggleModal() {
   isActive.value = !isActive.value
+}
+
+function logout() {
+  console.log("logout")
 }
 </script>
 <template>
@@ -17,8 +22,6 @@ function toggleModal() {
   </div>
   <div class="flex-none gap-2">
     <label class="swap">
-  
-      <!-- this hidden checkbox controls the state -->
       <input type="checkbox" v-model="mute"/>
 
       <SpeakerWaveIcon class="swap-on size-8" />
@@ -39,7 +42,7 @@ function toggleModal() {
         <li>
           <a @click="toggleModal()">About</a>
         </li>
-        <li><a>Logout</a></li>
+        <li><a @click="logout()">Logout</a></li>
       </ul>
     </div>
   </div>
