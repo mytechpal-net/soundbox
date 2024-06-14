@@ -22,6 +22,12 @@ func Init() {
 		os.Exit(1)
 	}
 
+	pingErr := dbPool.Ping(context.Background())
+	if pingErr != nil {
+		fmt.Fprintf(os.Stderr, "Unable to connect on db: %v\n", pingErr)
+		os.Exit(1)
+	}
+
 	log.Println("Connected to the database successfully!")
 }
 

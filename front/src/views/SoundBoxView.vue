@@ -9,6 +9,7 @@ const userStore = userProfileStore()
 const loading = ref(true)
 const userSoundBox = ref(false)
 
+// For demo only
 const soundsList = [
   { key: 'sfx-office-mouse.mp3', name: 'mouse' },
   { key: 'sfx-office-stapler2.mp3', name: 'stapler' }
@@ -44,7 +45,7 @@ onMounted(() => {
         <button class="btn" onclick="uploadModal.showModal()">Upload something</button>
       </div>
       <div v-if="userSoundBox">
-        <SoundBoxApp :soundsList="soundsList" />
+        <SoundBoxApp :soundsList="soundsList" :sb-id="userSoundBox.Id"/>
       </div>
     </div>
   </div>

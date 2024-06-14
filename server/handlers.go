@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/kmathelot/soundbox-server/db"
 	"google.golang.org/api/idtoken"
 )
@@ -72,9 +73,64 @@ func userContext(c *gin.Context) {
 	c.JSON(http.StatusOK, userSb)
 }
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+// Connection structure
+type Connection struct {
+	Conn  *websocket.Conn
+	Group string
+}
+
+var connections = make(map[*websocket.Conn]*Connection)
+
 func soundBox(c *gin.Context) {
-	log.Println(c.Param("id"))
-	c.JSON(http.StatusOK, "OK")
+
+	group := c.Param("id")
+	if group == "" {
+		c.JSON(http.StatusPreconditionFailed, "Group not specified")
+		return
+	}
+
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+
+	if err != nil {
+		return
+	}
+
+	defer conn.Close()
+
+	connection := &Connection{Conn: conn, Group: group}
+	connections[conn] = connection
+
+	for {
+		messageType, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("read:", err)
+			delete(connections, conn)
+			break
+		}
+
+		log.Printf("received from %s: %s", group, message)
+
+		// Broadcast message to other clients in the same group
+		for _, c := range connections {
+			if c.Group == group && c.Conn != conn {
+				log.Println("sending message:", message)
+				err = c.Conn.WriteMessage(messageType, message)
+				if err != nil {
+					log.Println("write:", err)
+					c.Conn.Close()
+					delete(connections, c.Conn)
+				}
+			}
+		}
+	}
 }
 
 type joinSbData struct {

@@ -1,12 +1,24 @@
 <script setup>
 import { ref } from 'vue'
 
-const props = defineProps(['soundsList'])
+const props = defineProps(['sbId', 'soundsList'])
 const audioPlayer = ref(null)
 
+const socket = new WebSocket(`ws://localhost:8080/app/soundbox/${props.sbId}`);
+
 const play = function (soundKey) {
-  audioPlayer.value.src = "/" + soundKey
-  audioPlayer.value.play();
+  console.log(`Trying to play : ${soundKey}`)
+  socket.send(soundKey)
+}
+
+socket.onopen = function() {
+  console.log('Connected to the server');
+};
+
+socket.onmessage = function(event) {
+  const player = document.getElementById('audioPlayer');
+  player.src = "/" + event.data
+  player.play();
 }
 </script>
 <template>
@@ -16,6 +28,6 @@ const play = function (soundKey) {
     </div>
   </div>
   <div>
-    <audio ref="audioPlayer" controls></audio> 
+    <audio id="audioPlayer" ref="audioPlayer" controls></audio> 
   </div>
 </template>
