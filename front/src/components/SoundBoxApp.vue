@@ -12,7 +12,7 @@ const play = function (soundKey) {
 }
 
 socket.onopen = function() {
-  console.log('Connected to the server');
+  console.log('Connected to the server ');
 };
 
 socket.onmessage = function(event) {

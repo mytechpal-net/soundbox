@@ -104,6 +104,11 @@ func GetToken(token string) *UserToken {
 	return &userToken
 }
 
+func DelToken(token string) bool {
+	_, err := dbPool.Exec(context.Background(), "DELETE FROM users_token WHERE token = $1", token)
+	return err == nil
+}
+
 type soundBox struct {
 	Id       int
 	Name     string

@@ -23,6 +23,7 @@ func main() {
 
 	app.GET("/ping", pong)
 	app.GET("/user/:authid", userContext)
+	app.GET("user/logout", logout)
 
 	app.GET("/soundbox/:id", soundBox)
 	app.POST("/sounbox/join", joinSoundBox)

@@ -16,6 +16,9 @@ export const userProfileStore = defineStore("sessionId", {
       // save to session storage as well
       sessionStorage.setItem("userId", UserId)
       sessionStorage.setItem("sessionExp", SessionExp)
+    },
+    logout() {
+      this.saveSession({ UserId: null, SessionExp: null})
     }
   }
 })

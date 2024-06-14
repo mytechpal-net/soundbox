@@ -50,8 +50,6 @@ func login(c *gin.Context) {
 
 	user.Token = generateToken(user.AuthId)
 
-	log.Println(user.Token)
-
 	// Save token & write cookie
 	db.SaveToken(user.Id, *user.Token)
 	c.SetCookie("sb_session", user.Token.Token, 28800, "/", "localhost", true, true)
@@ -60,6 +58,13 @@ func login(c *gin.Context) {
 		user.AuthId,
 		int(user.Token.TokenExp.UnixMilli()),
 	})
+}
+
+func logout(c *gin.Context) {
+	cookie, _ := c.Cookie("sb_session")
+	cleaned := db.DelToken(cookie)
+	c.SetCookie("sb_session", cookie, 0, "/", "localhost", true, true)
+	c.JSON(http.StatusOK, cleaned)
 }
 
 func pong(c *gin.Context) {

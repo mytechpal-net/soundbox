@@ -1,16 +1,31 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { userProfileStore } from '@/stores/userProfile'
 import { Cog6ToothIcon, SpeakerXMarkIcon, SpeakerWaveIcon } from '@heroicons/vue/24/outline'
 
+const router = useRouter()
 const isActive = ref(false)
 const mute = ref(true)
+const userStore = userProfileStore()
+
+const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
 
 function toggleModal() {
   isActive.value = !isActive.value
 }
 
-function logout() {
-  console.log("logout")
+async function logout() {
+  const logout = await fetch(apiUrl + "/app/user/logout", {
+    credentials: 'include'
+  })
+
+  const status = await logout.status
+
+  if (status === 200) {
+    userStore.logout()
+    router.push('/login')
+  }
 }
 </script>
 <template>
