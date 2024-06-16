@@ -1,48 +1,42 @@
 package db
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-var dbPool *pgxpool.Pool
-var dbErr error
+var db *sql.DB
 
 func Init() {
-
+	var err error
 	// Init Db connection
-	dbPool, dbErr = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
-	if dbErr != nil {
-		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", dbErr)
-		os.Exit(1)
-	}
-
-	pingErr := dbPool.Ping(context.Background())
-	if pingErr != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect on db: %v\n", pingErr)
+	db, err = sql.Open("sqlite3", "./soundbox.db")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
 		os.Exit(1)
 	}
 
 	log.Println("Connected to the database successfully!")
+
+	CreateTables(db)
 }
 
 func Close() {
-	if dbPool != nil {
-		dbPool.Close()
+	if db != nil {
+		db.Close()
 	}
 }
 
 type UserProfile struct {
-	Id       int
-	AuthId   string
-	Nickname *string
-	Role     []*string
-	Token    *UserToken
+	Id     int64
+	AuthId string
+	Role   *string
+	Token  *UserToken
 }
 
 type UserToken struct {
@@ -54,10 +48,16 @@ type UserToken struct {
 func GetUserProfile(authId string) *UserProfile {
 	var user UserProfile
 
-	err := dbPool.QueryRow(context.Background(), "select id, authid, nickname, role from \"users\" where authid=$1", authId).Scan(&user.Id, &user.AuthId, &user.Nickname, &user.Role)
+	err := db.QueryRow("SELECT id, authid, role from user where authid=$1", authId).Scan(&user.Id, &user.AuthId, &user.Role)
+
 	if err != nil {
-		log.Printf("%v", err)
-		return nil
+		if err == sql.ErrNoRows {
+			log.Printf("User nor found")
+			return nil
+		} else {
+			log.Printf("%v", err)
+			return nil
+		}
 	}
 
 	return &user
@@ -67,35 +67,37 @@ func GetUserProfile(authId string) *UserProfile {
 * Not really a good func : missing error management.
  */
 func CreateUser(authId string) *UserProfile {
-	var id int
-	query := "INSERT INTO \"users\" (authid, role) VALUES ($1, '{''user''}') returning id"
-	err := dbPool.QueryRow(context.Background(), query, authId).Scan(&id)
+	query := "INSERT INTO user (authid, role) VALUES ($1, 'user')"
+	result, err := db.Exec(query, authId)
 	if err != nil {
 		log.Println("unable to create user")
 		log.Printf("error : %v", err)
 	}
 
+	id, _ := result.LastInsertId()
+
+	log.Printf("User %v created, row id %v", authId, id)
 	return &UserProfile{
 		Id:     id,
 		AuthId: authId,
 	}
 }
 
-func SaveToken(userId int, token UserToken) int {
-	var id int
-	query := "INSERT INTO \"users_token\" (user_id, token, token_exp) values ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET token = $2, token_exp = $3 returning user_id"
-	err := dbPool.QueryRow(context.Background(), query, userId, token.Token, token.TokenExp).Scan(&id)
+func SaveToken(userId int64, token UserToken) int64 {
+	query := "INSERT INTO user_token (user_authid, token, token_exp) VALUES ($1, $2, $3) ON CONFLICT DO UPDATE SET token = $2, token_exp = $3"
+	result, err := db.Exec(query, userId, token.Token, token.TokenExp)
 	if err != nil {
 		log.Println("Unable to save token")
 		log.Printf("%v", err)
 	}
 
-	return id
+	nbRows, _ := result.RowsAffected()
+	return nbRows
 }
 
 func GetToken(token string) *UserToken {
 	var userToken UserToken
-	err := dbPool.QueryRow(context.Background(), "select user_id, token, token_exp from \"users_token\" where token = $1", token).Scan(&userToken.UserId, &userToken.Token, &userToken.TokenExp)
+	err := db.QueryRow("SELECT user_authid, token, token_exp from user_token WHERE token = $1", token).Scan(&userToken.UserId, &userToken.Token, &userToken.TokenExp)
 	if err != nil {
 		log.Printf("%v", err)
 		return nil
@@ -105,7 +107,7 @@ func GetToken(token string) *UserToken {
 }
 
 func DelToken(token string) bool {
-	_, err := dbPool.Exec(context.Background(), "DELETE FROM users_token WHERE token = $1", token)
+	_, err := db.Exec("DELETE FROM user_token WHERE token = $1", token)
 	return err == nil
 }
 
@@ -118,7 +120,7 @@ type soundBox struct {
 
 func GetSoundbox(id int) *soundBox {
 	var sb soundBox
-	err := dbPool.QueryRow(context.Background(), "SELECT id, name, code, capacity FROM soundbox WHERE id = $1", id).Scan(&sb.Id, &sb.Name, &sb.Code, &sb.Capacity)
+	err := db.QueryRow("SELECT id, name, code, capacity FROM soundbox WHERE id = $1", id).Scan(&sb.Id, &sb.Name, &sb.Code, &sb.Capacity)
 	if err != nil {
 		log.Println("Unable to get soundbox")
 		return nil
@@ -129,7 +131,7 @@ func GetSoundbox(id int) *soundBox {
 
 func GetSoundboxByCode(code string) *soundBox {
 	var sb soundBox
-	err := dbPool.QueryRow(context.Background(), "SELECT id, name, code, capacity FROM soundbox WHERE code = $1", code).Scan(&sb.Id, &sb.Name, &sb.Code, &sb.Capacity)
+	err := db.QueryRow("SELECT id, name, code, capacity FROM soundbox WHERE code = $1", code).Scan(&sb.Id, &sb.Name, &sb.Code, &sb.Capacity)
 	if err != nil {
 		log.Println("Unable to get soundbox")
 		return nil
@@ -143,7 +145,7 @@ Get the user sb
 */
 func GetUserSb(userId string) *soundBox {
 	var sbId int
-	err := dbPool.QueryRow(context.Background(), "SELECT soundbox_id FROM user_soundbox where user_authid = $1", userId).Scan(&sbId)
+	err := db.QueryRow("SELECT soundbox_id FROM user_soundbox where user_authid = $1", userId).Scan(&sbId)
 	if err != nil {
 		log.Println("Looks like the user don't have any sb")
 		return nil
@@ -160,11 +162,11 @@ func JoinSoundBox(userId string, soundBoxCode string) *soundBox {
 	sb := GetSoundboxByCode(soundBoxCode)
 
 	if sb == nil {
-		log.Printf("No matchin soundbox with the code %v\n", soundBoxCode)
+		log.Printf("No matching soundbox with the code %v\n", soundBoxCode)
 		return nil
 	}
 
-	_, err := dbPool.Exec(context.Background(), "INSERT INTO user_soundbox (user_authid, soundbox_id) VALUES ($1, $2) returning soundbox_id", userId, sb.Id)
+	_, err := db.Exec("INSERT INTO user_soundbox (user_authid, soundbox_id) VALUES ($1, $2)", userId, sb.Id)
 	if err != nil {
 		log.Println("Unable to join the soundbox.")
 		log.Printf("%v\n", err)

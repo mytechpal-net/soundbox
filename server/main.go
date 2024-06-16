@@ -9,6 +9,7 @@ import (
 func main() {
 	// init Db connexion
 	db.Init()
+
 	defer db.Close()
 
 	// Initialize router

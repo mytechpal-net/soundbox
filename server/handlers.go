@@ -45,6 +45,7 @@ func login(c *gin.Context) {
 
 	user := db.GetUserProfile(payload.Subject)
 	if user == nil {
+		log.Printf("User %v not found, creating it", payload.Subject)
 		user = db.CreateUser(payload.Subject)
 	}
 
