@@ -1,1 +1,9 @@
-[unit]
+[Unit]
+Description=SoundBox service
+After=network.target
+
+[Service]
+ExecStart=/opt/soundbox-server
+
+[Install]
+WantedBy=multi-user.target
