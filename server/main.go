@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/kmathelot/soundbox-server/db"
@@ -24,10 +25,10 @@ func main() {
 
 	app.GET("/ping", pong)
 	app.GET("/user/:authid", userContext)
-	app.GET("user/logout", logout)
+	app.GET("/user/logout", logout)
+	app.POST("/user/join", joinSoundBox)
 
 	app.GET("/soundbox/:id", soundBox)
-	app.POST("/sounbox/join", joinSoundBox)
 
 	router.Run()
 }
@@ -36,9 +37,15 @@ func main() {
 func newRouter() *gin.Engine {
 	router := gin.Default()
 
-	trustedProxies := []string{"127.0.0.1"}
+	router.SetTrustedProxies(nil)
 
-	router.SetTrustedProxies(trustedProxies)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173", "https://soundbox.mytechpal.net"},
+		AllowMethods:     []string{"OPTIONS", "GET", "POST"},
+		AllowHeaders:     []string{"Origin", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 
 	return router
 }

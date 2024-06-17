@@ -53,7 +53,7 @@ func login(c *gin.Context) {
 
 	// Save token & write cookie
 	db.SaveToken(user.Id, *user.Token)
-	c.SetCookie("sb_session", user.Token.Token, 28800, "/", "localhost", true, true)
+	c.SetCookie("sb_session", user.Token.Token, 28800, "/", c.Request.Host, true, true)
 
 	c.JSON(http.StatusOK, userData{
 		user.AuthId,
@@ -64,7 +64,7 @@ func login(c *gin.Context) {
 func logout(c *gin.Context) {
 	cookie, _ := c.Cookie("sb_session")
 	cleaned := db.DelToken(cookie)
-	c.SetCookie("sb_session", cookie, 0, "/", "localhost", true, true)
+	c.SetCookie("sb_session", cookie, 0, "/", c.Request.Host, true, true)
 	c.JSON(http.StatusOK, cleaned)
 }
 
