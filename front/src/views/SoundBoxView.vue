@@ -4,7 +4,9 @@ import { userProfileStore } from '@/stores/userProfile'
 import JoinSoundBox from '@/components/JoinSoundBox.vue'
 import SoundBoxApp from '../components/SoundBoxApp.vue';
 
-const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
+const apiProtocol = import.meta.env.VITE_APP_BACKEND_URL === 'prod' ? 'https' : 'http'
+const apiUrl = `${apiProtocol}://${import.meta.env.VITE_APP_BACKEND_URL}`
+
 const userStore = userProfileStore()
 const loading = ref(true)
 const userSoundBox = ref(false)

@@ -3,14 +3,17 @@ import { ref } from 'vue'
 
 const props = defineProps(['userId'])
 const code = ref(null)
-const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
+
+const apiProtocol = import.meta.env.VITE_APP_BACKEND_URL === 'prod' ? 'https' : 'http'
+const apiUrl = `${apiProtocol}://${import.meta.env.VITE_APP_BACKEND_URL}`
+
 var errorJoin = ref(false)
 
 const soundBox = defineModel()
 
 async function JoinSoundBox() {
   errorJoin.value = false
-  const response = await fetch(apiUrl + "/app/sounbox/join", {
+  const response = await fetch(apiUrl + "/app/user/join", {
     credentials: 'include',
     method: 'POST',
     body: JSON.stringify({ 

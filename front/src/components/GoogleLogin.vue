@@ -6,7 +6,8 @@ import { userProfileStore } from '@/stores/userProfile'
 const router = useRouter()
 const userStore = userProfileStore()
 const googleClientId = import.meta.env.VITE_APP_GOOGLE_APP
-const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
+const apiProtocol = import.meta.env.VITE_APP_BACKEND_URL === 'prod' ? 'https' : 'http'
+const apiUrl = `${apiProtocol}://${import.meta.env.VITE_APP_BACKEND_URL}`
 
 async function loginCallback(loginData) {
   const response = await fetch(apiUrl + "/login", {

@@ -9,7 +9,8 @@ const isActive = ref(false)
 const mute = ref(true)
 const userStore = userProfileStore()
 
-const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
+const apiProtocol = import.meta.env.VITE_APP_BACKEND_URL === 'prod' ? 'https' : 'http'
+const apiUrl = `${apiProtocol}://${import.meta.env.VITE_APP_BACKEND_URL}`
 
 function toggleModal() {
   isActive.value = !isActive.value

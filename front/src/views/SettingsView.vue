@@ -1,7 +1,8 @@
 <script setup>
 import { onMounted } from 'vue'
 
-const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
+const apiProtocol = import.meta.env.VITE_APP_BACKEND_URL === 'prod' ? 'https' : 'http'
+const apiUrl = `${apiProtocol}://${import.meta.env.VITE_APP_BACKEND_URL}`
 
 onMounted(() => {
   fetch(apiUrl + "/app/ping", {

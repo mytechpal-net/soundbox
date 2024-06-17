@@ -1,10 +1,12 @@
 <script setup>
 import { ref } from 'vue'
 
+const apiProtocol = import.meta.env.VITE_APP_BACKEND_URL === 'prod' ? 'wss' : 'ws'
+const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
 const props = defineProps(['sbId', 'soundsList'])
 const audioPlayer = ref(null)
 
-const socket = new WebSocket(`ws://localhost:8080/app/soundbox/${props.sbId}`);
+const socket = new WebSocket(`${apiProtocol}://${apiUrl}/app/soundbox/${props.sbId}`);
 
 const play = function (soundKey) {
   console.log(`Trying to play : ${soundKey}`)
@@ -12,7 +14,7 @@ const play = function (soundKey) {
 }
 
 socket.onopen = function() {
-  console.log('Connected to the server ');
+  console.log('Connected to the server');
 };
 
 socket.onmessage = function(event) {
