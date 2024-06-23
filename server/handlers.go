@@ -52,7 +52,7 @@ func login(c *gin.Context) {
 	user.Token = generateToken(user.AuthId)
 
 	// Save token & write cookie
-	db.SaveToken(user.Id, *user.Token)
+	db.SaveToken(user.AuthId, *user.Token)
 	c.SetCookie("sb_session", user.Token.Token, 28800, "/", c.Request.Host, true, true)
 
 	c.JSON(http.StatusOK, userData{
@@ -72,11 +72,30 @@ func pong(c *gin.Context) {
 	c.JSON(http.StatusOK, "OK")
 }
 
+type userSbContext struct {
+	SoundBox *db.SoundBox
+	UserRole string
+}
+
 // Get soundbox per user
 // SB can be nil on purpose.
+// Return user Role (admin|user)
+// BY default nobody is admin
 func userContext(c *gin.Context) {
 	userSb := db.GetUserSb(c.Param("authid"))
-	c.JSON(http.StatusOK, userSb)
+
+	userRole := "user"
+
+	if userSb != nil {
+		userRole = db.GetUserRole(c.Param("authid"))
+	}
+
+	userContext := userSbContext{
+		userSb,
+		userRole,
+	}
+
+	c.JSON(http.StatusOK, userContext)
 }
 
 var upgrader = websocket.Upgrader{
@@ -125,14 +144,14 @@ func soundBox(c *gin.Context) {
 		log.Printf("received from %s: %s", group, message)
 
 		// Broadcast message to other clients in the same group
-		for _, c := range connections {
-			if c.Group == group && c.Conn != conn {
+		for _, w := range connections {
+			if w.Group == group {
 				log.Println("sending message:", message)
-				err = c.Conn.WriteMessage(messageType, message)
+				err = w.Conn.WriteMessage(messageType, message)
 				if err != nil {
 					log.Println("write:", err)
-					c.Conn.Close()
-					delete(connections, c.Conn)
+					w.Conn.Close()
+					delete(connections, w.Conn)
 				}
 			}
 		}

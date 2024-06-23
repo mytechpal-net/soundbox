@@ -63,6 +63,18 @@ func GetUserProfile(authId string) *UserProfile {
 	return &user
 }
 
+func GetUserRole(authId string) string {
+	var userRole string
+
+	err := db.QueryRow("SELECT role from user where authid=$1", authId).Scan(&userRole)
+
+	if err != nil {
+		userRole = "user"
+	}
+
+	return userRole
+}
+
 /*
 * Not really a good func : missing error management.
  */
@@ -83,7 +95,7 @@ func CreateUser(authId string) *UserProfile {
 	}
 }
 
-func SaveToken(userId int64, token UserToken) int64 {
+func SaveToken(userId string, token UserToken) int64 {
 	query := "INSERT INTO user_token (user_authid, token, token_exp) VALUES ($1, $2, $3) ON CONFLICT DO UPDATE SET token = $2, token_exp = $3"
 	result, err := db.Exec(query, userId, token.Token, token.TokenExp)
 	if err != nil {
@@ -111,26 +123,34 @@ func DelToken(token string) bool {
 	return err == nil
 }
 
-type soundBox struct {
-	Id       int
-	Name     string
-	Capacity int
-	Code     string
+type SoundBox struct {
+	Id        int
+	Name      string
+	Capacity  int
+	Code      string
+	SoundList []Sound
 }
 
-func GetSoundbox(id int) *soundBox {
-	var sb soundBox
+type Sound struct {
+	Name string
+	Key  string
+}
+
+func GetSoundbox(id int) *SoundBox {
+	var sb SoundBox
 	err := db.QueryRow("SELECT id, name, code, capacity FROM soundbox WHERE id = $1", id).Scan(&sb.Id, &sb.Name, &sb.Code, &sb.Capacity)
 	if err != nil {
 		log.Println("Unable to get soundbox")
 		return nil
 	}
 
+	sb.SoundList = GetSoundBoxSounds(id)
+
 	return &sb
 }
 
-func GetSoundboxByCode(code string) *soundBox {
-	var sb soundBox
+func GetSoundboxByCode(code string) *SoundBox {
+	var sb SoundBox
 	err := db.QueryRow("SELECT id, name, code, capacity FROM soundbox WHERE code = $1", code).Scan(&sb.Id, &sb.Name, &sb.Code, &sb.Capacity)
 	if err != nil {
 		log.Println("Unable to get soundbox")
@@ -143,7 +163,7 @@ func GetSoundboxByCode(code string) *soundBox {
 /*
 Get the user sb
 */
-func GetUserSb(userId string) *soundBox {
+func GetUserSb(userId string) *SoundBox {
 	var sbId int
 	err := db.QueryRow("SELECT soundbox_id FROM user_soundbox where user_authid = $1", userId).Scan(&sbId)
 	if err != nil {
@@ -154,11 +174,23 @@ func GetUserSb(userId string) *soundBox {
 	return GetSoundbox(sbId)
 }
 
+func GetSoundBoxSounds(sbId int) []Sound {
+	return []Sound{
+		{
+			Name: "Mouse",
+			Key:  "sfx-office-mouse.mp3",
+		},
+		{
+			Name: "Stapler",
+			Key:  "sfx-office-stapler2.mp3",
+		}}
+}
+
 /*
 Join a sb with a code.
 There is a Unique key on userId, then we need to check the result of the insert
 */
-func JoinSoundBox(userId string, soundBoxCode string) *soundBox {
+func JoinSoundBox(userId string, soundBoxCode string) *SoundBox {
 	sb := GetSoundboxByCode(soundBoxCode)
 
 	if sb == nil {
@@ -172,6 +204,8 @@ func JoinSoundBox(userId string, soundBoxCode string) *soundBox {
 		log.Printf("%v\n", err)
 		return nil
 	}
+
+	sb.SoundList = GetSoundBoxSounds(sb.Id)
 
 	return sb
 }
