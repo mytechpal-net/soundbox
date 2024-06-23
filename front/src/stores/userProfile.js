@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import axios from 'axios';
 
-const apiProtocol = import.meta.env.VITE_APP_BACKEND_URL === 'prod' ? 'https' : 'http'
+const apiProtocol = import.meta.env.VITE_APP_ENV === 'prod' ? 'https' : 'http'
 const apiUrl = `${apiProtocol}://${import.meta.env.VITE_APP_BACKEND_URL}`
 
 export const userProfileStore = defineStore("sessionId", {

@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 
-const apiProtocol = import.meta.env.VITE_APP_BACKEND_URL === 'prod' ? 'wss' : 'ws'
+const apiProtocol = import.meta.env.VITE_APP_ENV === 'prod' ? 'wss' : 'ws'
 const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
 const props = defineProps(['sbId', 'soundsList'])
 
