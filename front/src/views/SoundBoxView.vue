@@ -3,7 +3,8 @@ import { watch } from 'vue'
 import { userProfileStore } from '@/stores/userProfile'
 import { useApiFetch } from '@/helpers/fetch.js'
 import JoinSoundBox from '@/components/JoinSoundBox.vue'
-import SoundBoxApp from '../components/SoundBoxApp.vue'
+import CreateSoundBox from '@/components/CreateSoundBox.vue'
+import SoundBoxApp from '@/components/SoundBoxApp.vue'
 
 const userStore = userProfileStore()
 
@@ -22,6 +23,8 @@ watch(data, (newData) => {
     </div>
     <div v-if="!loading && !userStore.soundBox">
       <JoinSoundBox :userId="userStore.userId" v-model="userStore.soundBox"/>
+      <p class="text-center">or</p>
+      <CreateSoundBox :userId="userStore.userId" v-model="userStore.soundBox"/>
       <div class="flex justify-center">
         <img src="/such_empty.jpg" alt="" class="w-96 mask mask-hexagon-2">          
       </div>        

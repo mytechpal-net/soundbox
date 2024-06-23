@@ -5,6 +5,7 @@ import Default from '@/layouts/Default.vue'
 import SoundBoxView from '@/views/SoundBoxView.vue'
 import ConfigView from '@/views/ConfigView.vue'
 import UserView from '@/views/UserView.vue'
+import UploadView from '@/views/UploadView.vue'
 
 import { userProfileStore } from '@/stores/userProfile'
 
@@ -34,6 +35,10 @@ const routes = [
         path: 'config',
         component: ConfigView
       },
+      {
+        path: 'upload',
+        component: UploadView
+      }
     ],  
   },
   {

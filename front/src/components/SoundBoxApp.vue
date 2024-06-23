@@ -1,14 +1,16 @@
 <script setup>
-import { ref } from 'vue'
+import axios from 'axios'
 
-const apiProtocol = import.meta.env.VITE_APP_ENV === 'prod' ? 'wss' : 'ws'
+const apiProtocol = import.meta.env.VITE_APP_ENV === 'prod' ? 'https' : 'http'
+const wsProtocol = import.meta.env.VITE_APP_ENV === 'prod' ? 'wss' : 'ws'
 const apiUrl = import.meta.env.VITE_APP_BACKEND_URL
 const props = defineProps(['sbId', 'soundsList'])
 
 // Declare audio context
 const audioCtx = new AudioContext();
 
-const socket = new WebSocket(`${apiProtocol}://${apiUrl}/app/soundbox/${props.sbId}`);
+// Connect to WS
+const socket = new WebSocket(`${wsProtocol}://${apiUrl}/app/soundbox/${props.sbId}`);
 
 const play = function (soundKey) {
   console.log(`Trying to play : ${soundKey}`)
@@ -21,9 +23,8 @@ socket.onopen = function() {
 
 socket.onmessage = function(event) {
   console.log("message : ", event.data)
-  fetch(event.data)
-    .then(response => response.arrayBuffer())
-    .then(data => audioCtx.decodeAudioData(data))
+  axios.get(`${apiProtocol}://${apiUrl}/sound/` + event.data, { withCredentials: true, responseType: "arraybuffer" })
+    .then(resp => audioCtx.decodeAudioData(resp.data))
     .then(buffer => {
       const source = audioCtx.createBufferSource();
       source.buffer = buffer;

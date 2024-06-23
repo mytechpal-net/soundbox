@@ -26,7 +26,9 @@ function logout() {
     <RouterLink class="btn btn-ghost text-xl" to="/config" v-if="userStore.isAdmin">
       Settings
     </RouterLink>
-    <button class="btn btn-ghost text-xl">Upload</button>
+    <RouterLink class="btn btn-ghost text-xl" to="/upload">
+      Upload
+    </RouterLink>
   </div>
   <div class="flex-none gap-2">
     <label class="swap">
