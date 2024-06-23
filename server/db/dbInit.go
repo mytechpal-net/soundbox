@@ -6,7 +6,7 @@ import (
 )
 
 var queryCreateTableSoundBox = `CREATE TABLE IF NOT EXISTS soundbox (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		id TEXT PRIMARY KEY,
 		name TEXT,
 		code TEXT UNIQUE,
 		capacity INTEGER

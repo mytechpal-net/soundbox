@@ -33,3 +33,9 @@ func validateAuthorizationMiddleware() gin.HandlerFunc {
 	}
 
 }
+
+func canPlayTheFile() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+	}
+}

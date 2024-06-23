@@ -95,6 +95,15 @@ func CreateUser(authId string) *UserProfile {
 	}
 }
 
+func PromoteUser(authId string) {
+	query := "UPDATE user SET role = 'admin' WHERE authid = $1"
+	_, err := db.Exec(query, authId)
+	if err != nil {
+		log.Println("unable to promote user")
+		log.Printf("error : %v", err)
+	}
+}
+
 func SaveToken(userId string, token UserToken) int64 {
 	query := "INSERT INTO user_token (user_authid, token, token_exp) VALUES ($1, $2, $3) ON CONFLICT DO UPDATE SET token = $2, token_exp = $3"
 	result, err := db.Exec(query, userId, token.Token, token.TokenExp)
@@ -124,7 +133,7 @@ func DelToken(token string) bool {
 }
 
 type SoundBox struct {
-	Id        int
+	Id        string
 	Name      string
 	Capacity  int
 	Code      string
@@ -136,7 +145,7 @@ type Sound struct {
 	Key  string
 }
 
-func GetSoundbox(id int) *SoundBox {
+func GetSoundbox(id string) *SoundBox {
 	var sb SoundBox
 	err := db.QueryRow("SELECT id, name, code, capacity FROM soundbox WHERE id = $1", id).Scan(&sb.Id, &sb.Name, &sb.Code, &sb.Capacity)
 	if err != nil {
@@ -147,6 +156,19 @@ func GetSoundbox(id int) *SoundBox {
 	sb.SoundList = GetSoundBoxSounds(id)
 
 	return &sb
+}
+
+func CreateSoundBox(id string, name string, invitationCode string) error {
+	query := "INSERT INTO soundbox (id, name, code, capacity) VALUES ($1, $2, $3, 50)"
+	_, err := db.Exec(query, id, name, invitationCode)
+
+	if err != nil {
+		log.Println("Unable to create soundbox")
+		log.Printf("%v", err)
+		return err
+	}
+
+	return nil
 }
 
 func GetSoundboxByCode(code string) *SoundBox {
@@ -164,7 +186,7 @@ func GetSoundboxByCode(code string) *SoundBox {
 Get the user sb
 */
 func GetUserSb(userId string) *SoundBox {
-	var sbId int
+	var sbId string
 	err := db.QueryRow("SELECT soundbox_id FROM user_soundbox where user_authid = $1", userId).Scan(&sbId)
 	if err != nil {
 		log.Println("Looks like the user don't have any sb")
@@ -174,7 +196,7 @@ func GetUserSb(userId string) *SoundBox {
 	return GetSoundbox(sbId)
 }
 
-func GetSoundBoxSounds(sbId int) []Sound {
+func GetSoundBoxSounds(sbId string) []Sound {
 	return []Sound{
 		{
 			Name: "Mouse",

@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/kmathelot/soundbox-server/db"
+	"github.com/kmathelot/soundbox-server/internal/directories"
 	"google.golang.org/api/idtoken"
 )
 
@@ -49,7 +51,7 @@ func login(c *gin.Context) {
 		user = db.CreateUser(payload.Subject)
 	}
 
-	user.Token = generateToken(user.AuthId)
+	user.Token = generateSessionToken(user.AuthId)
 
 	// Save token & write cookie
 	db.SaveToken(user.AuthId, *user.Token)
@@ -130,6 +132,10 @@ func soundBox(c *gin.Context) {
 
 	defer conn.Close()
 
+	// Check if user can join the group
+	cookie, _ := c.Cookie("sb_session")
+	log.Println(cookie)
+
 	connection := &Connection{Conn: conn, Group: group}
 	connections[conn] = connection
 
@@ -156,6 +162,54 @@ func soundBox(c *gin.Context) {
 			}
 		}
 	}
+}
+
+type newSbData struct {
+	SbName string `json:"sbName"`
+	UserId string `json:"user"`
+}
+
+func createSoundBox(c *gin.Context) {
+	var sbData newSbData
+
+	// bind post values
+	if err := c.BindJSON(&sbData); err != nil {
+		fmt.Printf("Error %v", err)
+		c.JSON(http.StatusBadRequest, "Incorrect values")
+		return
+	}
+
+	// Check if the user is not a member already
+	if check := db.GetUserSb(sbData.UserId); check != nil {
+		c.JSON(http.StatusForbidden, "msg: 'Hell no'")
+		return
+	}
+
+	// If no name was provided, we generate a sequence
+	if len(strings.TrimSpace(sbData.SbName)) == 0 {
+		sbData.SbName = fmt.Sprintf("sb-%v", generateId(8))
+	}
+
+	sbId := generateId(8)
+	invitationCode := fmt.Sprintf("%v-%v", generateId(3), generateId(3))
+
+	// Create the SB
+	if err := db.CreateSoundBox(sbId, sbData.SbName, invitationCode); err != nil {
+		fmt.Printf("Error %v", err)
+		c.JSON(http.StatusInternalServerError, "Unable to create the box")
+		return
+	}
+
+	// Join the soundbox
+	sb := db.JoinSoundBox(sbData.UserId, invitationCode)
+
+	// Create the directory
+	directories.CreateSbDirectory(sbId)
+
+	// promote the user
+	db.PromoteUser(sbData.UserId)
+
+	c.JSON(http.StatusOK, sb)
 }
 
 type joinSbData struct {
@@ -192,15 +246,31 @@ func validateGoogleToken(ctx context.Context, audience string, token string) (*i
 }
 
 // generate a session token
-func generateToken(userId string) *db.UserToken {
-	b := make([]byte, 8)
-	rand.Read(b)
-
+func generateSessionToken(userId string) *db.UserToken {
 	t0 := time.Now().Add(time.Hour * 8)
 
 	return &db.UserToken{
 		UserId:   userId,
-		Token:    fmt.Sprintf("%x", b),
+		Token:    generateId(10),
 		TokenExp: t0,
 	}
+}
+
+// Create a rand Id
+func generateId(length int) string {
+	b := make([]byte, length)
+	rand.Read(b)
+
+	return fmt.Sprintf("%x", b)
+}
+
+func uploadFile(c *gin.Context) {
+	// single file
+	file, _ := c.FormFile("file")
+	log.Println(file.Filename)
+
+	// Upload the file to specific dst.
+	c.SaveUploadedFile(file, fmt.Sprintf("./sounds/%s", file.Filename))
+
+	c.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
 }
