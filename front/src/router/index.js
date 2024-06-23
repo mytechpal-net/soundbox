@@ -3,7 +3,8 @@ import { createWebHistory, createRouter } from 'vue-router'
 import Login from '@/pages/Login.vue'
 import Default from '@/layouts/Default.vue'
 import SoundBoxView from '@/views/SoundBoxView.vue'
-import SettingsView from '@/views/SettingsView.vue'
+import ConfigView from '@/views/ConfigView.vue'
+import UserView from '@/views/UserView.vue'
 
 import { userProfileStore } from '@/stores/userProfile'
 
@@ -11,23 +12,40 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: Login
+    component: Login,
+    beforeEnter: (to, from) => {
+      // https://pinia.vuejs.org/core-concepts/outside-component-usage.html
+      const userStore = userProfileStore()
+      if (userStore.hasSession) {
+        return { path: '/app' }
+      }
+    }
   },
   { 
     path: '/', 
     component: Default,
-    redirect: '/home',
+    redirect: '/app',
     children: [
       {
-        path: 'home',
+        path: 'app',
         component: SoundBoxView
       },
       {
-        path: 'settings',
-        component: SettingsView
-      }
+        path: 'config',
+        component: ConfigView
+      },
     ],  
   },
+  {
+    path: '/user',
+    component: Default,
+    children: [
+      {
+        path: '',
+        component: UserView
+      }
+    ]
+  }
 ]
 
 const router = createRouter({
@@ -36,7 +54,7 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from) => {
-  // replace it with a dedicated logic
+  // https://pinia.vuejs.org/core-concepts/outside-component-usage.html
   const userStore = userProfileStore()
 
   const isAuthenticated = userStore.hasSession

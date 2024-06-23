@@ -1,66 +1,29 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { watch } from 'vue'
 import { userProfileStore } from '@/stores/userProfile'
+import { useApiFetch } from '@/helpers/fetch.js'
 import JoinSoundBox from '@/components/JoinSoundBox.vue'
-import SoundBoxApp from '../components/SoundBoxApp.vue';
-
-const apiProtocol = import.meta.env.VITE_APP_BACKEND_URL === 'prod' ? 'https' : 'http'
-const apiUrl = `${apiProtocol}://${import.meta.env.VITE_APP_BACKEND_URL}`
+import SoundBoxApp from '../components/SoundBoxApp.vue'
 
 const userStore = userProfileStore()
-const loading = ref(true)
-const userSoundBox = ref(false)
 
-// For demo only
-const soundsList = [
-  { key: 'sfx-office-mouse.mp3', name: 'mouse' },
-  { key: 'sfx-office-stapler2.mp3', name: 'stapler' }
-]
+const { data, loading } = useApiFetch("/app/user/" + userStore.userId)
 
-// Get user context
-const fetchData = async () => {
-  const response = await fetch(apiUrl + "/app/user/" + userStore.userId, {
-    credentials: 'include'
-  })
-
-  const sbData = await response.json()
-  loading.value = false
-  userSoundBox.value = sbData;
-}
-
-// Get sb sounds
-const getSounds = async() => {
-  console.log('I\'m Helping')
-}
-
-// Get data on mounted
-onMounted(() => {
-  fetchData()
+watch(data, (newData) => {
+  userStore.soundBox = newData.SoundBox
+  userStore.isAdmin = newData.UserRole === "admin"
 })
+
 </script>
 <template>
-  <span class="loading loading-dots loading-lg" v-if="loading"></span>
-  <div v-if="!loading">
-    <div class="container mx-auto">
-      <JoinSoundBox v-if="!userSoundBox" :userId="userStore.userId" v-model="userSoundBox" @update:modelValue="getSounds"></JoinSoundBox>
-      <div v-if="userSoundBox">
-        <button class="btn" onclick="uploadModal.showModal()">Upload something</button>
-      </div>
-      <div v-if="userSoundBox">
-        <SoundBoxApp :soundsList="soundsList" :sb-id="userSoundBox.Id"/>
-      </div>
+    <span class="loading loading-dots loading-lg" v-if="loading"></span>
+    <div v-if="userStore.soundBox">
+      <SoundBoxApp :soundsList="userStore.soundBox.SoundList" :sb-id="userStore.soundBox.Id"/>
     </div>
-  </div>
-  <dialog id="uploadModal" class="modal">
-    <div class="modal-box">
-      <h3 class="font-bold text-lg">Hello!</h3>
-      <p class="py-4">Press ESC key or click the button below to close</p>
-      <div class="modal-action">
-        <form method="dialog">
-          <!-- if there is a button in form, it will close the modal -->
-          <button class="btn">Close</button>
-        </form>
-      </div>
+    <div v-if="!loading && !userStore.soundBox">
+      <JoinSoundBox :userId="userStore.userId" v-model="userStore.soundBox"/>
+      <div class="flex justify-center">
+        <img src="/such_empty.jpg" alt="" class="w-96 mask mask-hexagon-2">          
+      </div>        
     </div>
-  </dialog>
 </template>

@@ -1,34 +1,25 @@
 <script setup>
 import { ref } from 'vue'
+import axios from 'axios';
+import { apiUrl } from '@/helpers/api.js'
 
 const props = defineProps(['userId'])
 const code = ref(null)
-
-const apiProtocol = import.meta.env.VITE_APP_BACKEND_URL === 'prod' ? 'https' : 'http'
-const apiUrl = `${apiProtocol}://${import.meta.env.VITE_APP_BACKEND_URL}`
-
-var errorJoin = ref(false)
-
+var error = ref(false)
+// 2 ways binding
 const soundBox = defineModel()
 
 async function JoinSoundBox() {
-  errorJoin.value = false
-  const response = await fetch(apiUrl + "/app/user/join", {
-    credentials: 'include',
-    method: 'POST',
-    body: JSON.stringify({ 
-      'invitationCode': code.value,
-      'user': props.userId
-    })
-  })
-
-  const status = await response.status
-  const result = await response.json()
-  if (status !== 200) {
-    errorJoin.value = true
+  const bodyQuery = { 
+    'invitationCode': code.value,
+    'user': props.userId
   }
-  else {
-    soundBox.value = result
+  try {
+    const { data } = await axios.post(apiUrl + "/app/user/join", bodyQuery, { withCredentials: true })
+    soundBox.value = data
+  }
+  catch (err) {
+    error.value = err
   }
 }
 </script>
@@ -44,7 +35,7 @@ async function JoinSoundBox() {
       <input type="text" placeholder="Enter a soundbox code" class="input input-bordered input-info w-full max-w-xs" v-model="code" />
       <button class="btn btn-neutral ml-4" @click="JoinSoundBox()">Join</button>
     </div>
-    <div role="alert" class="alert alert-error mt-5" v-if="errorJoin">
+    <div role="alert" class="alert alert-error mt-5" v-if="error">
       <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
       <span>Error! Task failed successfully.</span>
     </div>

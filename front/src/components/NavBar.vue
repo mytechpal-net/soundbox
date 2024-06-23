@@ -9,37 +9,28 @@ const isActive = ref(false)
 const mute = ref(true)
 const userStore = userProfileStore()
 
-const apiProtocol = import.meta.env.VITE_APP_BACKEND_URL === 'prod' ? 'https' : 'http'
-const apiUrl = `${apiProtocol}://${import.meta.env.VITE_APP_BACKEND_URL}`
-
 function toggleModal() {
   isActive.value = !isActive.value
 }
 
-async function logout() {
-  const logout = await fetch(apiUrl + "/app/user/logout", {
-    credentials: 'include'
-  })
-
-  const status = await logout.status
-
-  if (status === 200) {
-    userStore.logout()
-    router.push('/login')
-  }
+function logout() {
+  userStore.logout().then(() => router.push('/login'))
 }
 </script>
 <template>
   <div class="navbar bg-base-100 shadow-md">
   <div class="flex-1">
-    <RouterLink class="btn btn-ghost text-xl" to="/home">
+    <RouterLink class="btn btn-ghost text-xl" to="/app">
       SoundBox
     </RouterLink>
+    <RouterLink class="btn btn-ghost text-xl" to="/config" v-if="userStore.isAdmin">
+      Settings
+    </RouterLink>
+    <button class="btn btn-ghost text-xl">Upload</button>
   </div>
   <div class="flex-none gap-2">
     <label class="swap">
       <input type="checkbox" v-model="mute"/>
-
       <SpeakerWaveIcon class="swap-on size-8" />
       <SpeakerXMarkIcon class="swap-off size-8" />
     </label>
@@ -51,8 +42,8 @@ async function logout() {
       </div>
       <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
         <li>
-          <RouterLink to="/settings">
-            Settings
+          <RouterLink to="/user">
+            Profile
           </RouterLink>
         </li>
         <li>
