@@ -8,7 +8,7 @@ const userStore = userProfileStore()
 const googleClientId = import.meta.env.VITE_APP_GOOGLE_APP
 
 async function loginCallback(loginData) {
-  userStore.createSession(loginData).then(() => router.push('/home'))
+  userStore.createSession(loginData).then(() => router.push('/app'))
 }
 
 onMounted(() => {
