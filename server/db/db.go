@@ -141,8 +141,9 @@ type SoundBox struct {
 }
 
 type Sound struct {
-	Name string
-	Key  string
+	Id         string
+	Name       string
+	SoundBoxId string
 }
 
 func GetSoundbox(id string) *SoundBox {
@@ -197,15 +198,22 @@ func GetUserSb(userId string) *SoundBox {
 }
 
 func GetSoundBoxSounds(sbId string) []Sound {
-	return []Sound{
-		{
-			Name: "Mouse",
-			Key:  "sfx-office-mouse.mp3",
-		},
-		{
-			Name: "Stapler",
-			Key:  "sfx-office-stapler2.mp3",
-		}}
+	var sounds []Sound
+
+	query := "SELECT id, name, soundbox_id FROM sound WHERE soundbox_id = $1"
+	rows, err := db.Query(query, sbId)
+
+	if err != nil {
+		log.Println("Ooopsie")
+	}
+
+	for rows.Next() {
+		var sound Sound
+		rows.Scan(&sound.Id, &sound.Name, &sound.SoundBoxId)
+		sounds = append(sounds, sound)
+	}
+
+	return sounds
 }
 
 /*
@@ -230,4 +238,16 @@ func JoinSoundBox(userId string, soundBoxCode string) *SoundBox {
 	sb.SoundList = GetSoundBoxSounds(sb.Id)
 
 	return sb
+}
+
+func CreateSound(id string, name string, sbId string) error {
+
+	_, err := db.Exec("INSERT INTO sound (id, name, soundbox_id) VALUES ($1, $2, $3)", id, name, sbId)
+	if err != nil {
+		log.Println("Unable to create sound entry")
+		log.Printf("%v\n", err)
+		return err
+	}
+
+	return nil
 }

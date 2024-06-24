@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/kmathelot/soundbox-server/db"
 	"github.com/kmathelot/soundbox-server/internal/directories"
@@ -204,7 +206,7 @@ func createSoundBox(c *gin.Context) {
 	sb := db.JoinSoundBox(sbData.UserId, invitationCode)
 
 	// Create the directory
-	directories.CreateSbDirectory(sbId)
+	directories.CreateDirectory(fmt.Sprintf("./sounds/%v", sbId))
 
 	// promote the user
 	db.PromoteUser(sbData.UserId)
@@ -265,12 +267,65 @@ func generateId(length int) string {
 }
 
 func uploadFile(c *gin.Context) {
+
+	// Get user sb id
+	// The access has already been granted by the middleware
+	cookie, _ := c.Cookie("sb_session")
+	userToken := db.GetToken(cookie)
+
+	// Get user SB
+	userSb := db.GetUserSb(userToken.UserId)
+
+	// This case shouldn't happen
+	if userSb == nil {
+		c.String(http.StatusBadRequest, "Unable to process")
+		return
+	}
+
 	// single file
-	file, _ := c.FormFile("file")
-	log.Println(file.Filename)
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.String(http.StatusBadRequest, "Get form err: %s", err.Error())
+		return
+	}
+
+	// Limit file size (e.g., 10MB)
+	const maxFileSize = 10 << 20 // 10MB
+	if file.Size > maxFileSize {
+		c.String(http.StatusBadRequest, "File too large")
+		return
+	}
+
+	name := c.PostForm("name")
+
+	if len(name) == 0 {
+		c.String(http.StatusBadRequest, "Bad request")
+		return
+	}
+
+	// Validate file extension
+	validExtensions := map[string]bool{
+		".mp3": true,
+	}
+
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	if !validExtensions[ext] {
+		c.String(http.StatusBadRequest, "Invalid file extension")
+		return
+	}
+
+	// Create a unique file name
+	uniqueFilename := uuid.New().String() + ext
 
 	// Upload the file to specific dst.
-	c.SaveUploadedFile(file, fmt.Sprintf("./sounds/%s", file.Filename))
+	if err := c.SaveUploadedFile(file, fmt.Sprintf("./sounds/%s/%s", userSb.Id, uniqueFilename)); err != nil {
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("%v", err))
+	}
 
-	c.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
+	// Create an entry in the db
+	if err := db.CreateSound(uniqueFilename, name, userSb.Id); err != nil {
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("%v", err))
+	}
+
+	c.JSON(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
 }

@@ -23,7 +23,7 @@ socket.onopen = function() {
 
 socket.onmessage = function(event) {
   console.log("message : ", event.data)
-  axios.get(`${apiProtocol}://${apiUrl}/sound/` + event.data, { withCredentials: true, responseType: "arraybuffer" })
+  axios.get(`${apiProtocol}://${apiUrl}/sound/${props.sbId}/` + event.data, { withCredentials: true, responseType: "arraybuffer" })
     .then(resp => audioCtx.decodeAudioData(resp.data))
     .then(buffer => {
       const source = audioCtx.createBufferSource();
@@ -38,7 +38,7 @@ socket.onmessage = function(event) {
   <div class="container mx-auto">
     <div class="txt-center mt-5">
       <div class="mt-5">
-        <button v-for="sound in soundsList" class="btn mr-2" @click="play(sound.Key)">{{ sound.Name }}</button>
+        <button v-for="sound in soundsList" class="btn mr-2" @click="play(sound.Id)">{{ sound.Name }}</button>
       </div>
     </div>
   </div>

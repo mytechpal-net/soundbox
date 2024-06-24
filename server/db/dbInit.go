@@ -12,6 +12,13 @@ var queryCreateTableSoundBox = `CREATE TABLE IF NOT EXISTS soundbox (
 		capacity INTEGER
 	);`
 
+var queryCreateTableSound = `CREATE TABLE IF NOT EXISTS sound (
+	id TEXT PRIMARY KEY,
+	name TEXT,
+	soundbox_id TEXT NOT NULL,
+	FOREIGN KEY (soundbox_id) REFERENCES soundbox (id)
+);`
+
 var queryCreateTableUsers = `CREATE TABLE IF NOT EXISTS user (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	authid TEXT UNIQUE NOT NULL,
@@ -20,7 +27,7 @@ var queryCreateTableUsers = `CREATE TABLE IF NOT EXISTS user (
 
 var queryCreateTableUsersSoundBox = `CREATE TABLE IF NOT EXISTS user_soundbox (
 	user_authid TEXT UNIQUE,
-	soundbox_id INTEGER NOT NULL,
+	soundbox_id TEXT NOT NULL,
 	FOREIGN KEY (user_authid) REFERENCES user (authid)
 	FOREIGN KEY (soundbox_id) REFERENCES soundbox (id)
 	);`
@@ -33,7 +40,7 @@ var queryCreateTableUserToken = `CREATE TABLE IF NOT EXISTS user_token (
 	);`
 
 func CreateTables(db *sql.DB) {
-	queries := []string{queryCreateTableSoundBox, queryCreateTableUsers, queryCreateTableUsersSoundBox, queryCreateTableUserToken}
+	queries := []string{queryCreateTableSoundBox, queryCreateTableSound, queryCreateTableUsers, queryCreateTableUsersSoundBox, queryCreateTableUserToken}
 
 	for i := range queries {
 		_, err := db.Exec(queries[i])

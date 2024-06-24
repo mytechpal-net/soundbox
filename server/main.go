@@ -17,7 +17,7 @@ func main() {
 	defer db.Close()
 
 	// Check sounds dir
-	directories.CreateMainDirectory()
+	directories.CreateDirectory("./sounds")
 
 	// Initialize router
 	router := newRouter()
