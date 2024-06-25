@@ -1,5 +1,5 @@
 <script setup>
-import { watch } from 'vue'
+import { ref, watch } from 'vue'
 import { userProfileStore } from '@/stores/userProfile'
 import { useApiFetch } from '@/helpers/fetch.js'
 import JoinSoundBox from '@/components/JoinSoundBox.vue'
@@ -7,6 +7,7 @@ import CreateSoundBox from '@/components/CreateSoundBox.vue'
 import SoundBoxApp from '@/components/SoundBoxApp.vue'
 
 const userStore = userProfileStore()
+const soundBox = ref(userStore.soundBox)
 
 const { data, loading } = useApiFetch("/app/user/" + userStore.userId)
 

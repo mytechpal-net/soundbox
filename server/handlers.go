@@ -118,11 +118,21 @@ type Connection struct {
 
 var connections = make(map[*websocket.Conn]*Connection)
 
+var stats = make(map[string]int32)
+
 func soundBox(c *gin.Context) {
 
 	group := c.Param("id")
 	if group == "" {
 		c.JSON(http.StatusPreconditionFailed, "Group not specified")
+		return
+	}
+
+	// Check if user can join the group
+	cookie, _ := c.Cookie("sb_session")
+	userToken := db.GetToken(cookie)
+	if !db.IsUserAuthorized(userToken.UserId, group) {
+		c.String(http.StatusPreconditionFailed, "You can't do that")
 		return
 	}
 
@@ -133,10 +143,6 @@ func soundBox(c *gin.Context) {
 	}
 
 	defer conn.Close()
-
-	// Check if user can join the group
-	cookie, _ := c.Cookie("sb_session")
-	log.Println(cookie)
 
 	connection := &Connection{Conn: conn, Group: group}
 	connections[conn] = connection
@@ -150,6 +156,7 @@ func soundBox(c *gin.Context) {
 		}
 
 		log.Printf("received from %s: %s", group, message)
+		stats[group] += 1
 
 		// Broadcast message to other clients in the same group
 		for _, w := range connections {
@@ -211,7 +218,13 @@ func createSoundBox(c *gin.Context) {
 	// promote the user
 	db.PromoteUser(sbData.UserId)
 
-	c.JSON(http.StatusOK, sb)
+	// Return the new user context
+	userSbCtx := userSbContext{
+		sb,
+		"admin",
+	}
+
+	c.JSON(http.StatusOK, userSbCtx)
 }
 
 type joinSbData struct {
@@ -318,6 +331,7 @@ func uploadFile(c *gin.Context) {
 	uniqueFilename := uuid.New().String() + ext
 
 	// Upload the file to specific dst.
+	// Should resample de file to have a reduced size
 	if err := c.SaveUploadedFile(file, fmt.Sprintf("./sounds/%s/%s", userSb.Id, uniqueFilename)); err != nil {
 		c.JSON(http.StatusInternalServerError, fmt.Sprintf("%v", err))
 	}

@@ -29,7 +29,7 @@ socket.onmessage = function(event) {
       const source = audioCtx.createBufferSource();
       source.buffer = buffer;
       source.connect(audioCtx.destination);
-      source.start(0);
+      source.start(0, 0, 5); // limit the duration to 5 sec
     })
     .catch(error => console.error('Error with decoding audio data:', error));
 }
@@ -37,6 +37,10 @@ socket.onmessage = function(event) {
 <template>
   <div class="container mx-auto">
     <div class="txt-center mt-5">
+      <div v-if="!soundsList" class="prose">
+        <h2 class="h2">It's time to upload some stuff</h2>
+        <img src="/kiss.gif" v-if="!soundsList" alt="">
+      </div>
       <div class="mt-5">
         <button v-for="sound in soundsList" class="btn mr-2" @click="play(sound.Id)">{{ sound.Name }}</button>
       </div>

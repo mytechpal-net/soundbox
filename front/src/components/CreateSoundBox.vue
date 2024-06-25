@@ -1,23 +1,41 @@
 <script setup>
 import { ref } from 'vue'
 import axios from 'axios'
+import { userProfileStore } from '@/stores/userProfile'
 import { apiUrl } from '@/helpers/api.js'
 
+const userStore = userProfileStore()
 const modalActive = ref(false)
-const loading = ref(false)
+const isLoading = ref(false)
+const isSuccess = ref(null)
 const sbName = ref(null)
 
 const props = defineProps(['userId'])
+// Bind values
+// Buggy - the parent model is not properly defined
 const soundBox = defineModel()
 
 // Create the soundbox after trigger
 async function createSounBox() {
+  isLoading.value = true
   const bodyQuery = { 
     'sbName': sbName.value,
     'user': props.userId
   }
-  const { data } = await axios.post(apiUrl + "/app/soundbox/new", bodyQuery, { withCredentials: true })
-  console.log(data)
+
+  await axios
+  .post(apiUrl + "/app/soundbox/new", bodyQuery, { withCredentials: true })
+  .then((resp) => { 
+    console.log(resp.data)
+    isSuccess.value = true
+    setTimeout(() => {
+      soundBox.value = resp.data.SoundBox
+      userStore.isAdmin = resp.data.UserRole === 'admin'
+      }, "1000"
+    )
+  })
+  .catch(() => isSuccess.value = false)
+  .finally(() => isLoading.value = false)
 }
 
 function toggleModal() {
@@ -40,7 +58,14 @@ function toggleModal() {
       <div class="modal-action flex justify-between">
         <div>
           <input type="text" placeholder="Give it a name" class="input input-bordered me-3" v-model="sbName"/>
-          <button class="btn btn-primary me-2" @click="createSounBox()">Create</button>
+          <button class="btn btn-primary me-2" @click="createSounBox()" v-if="!isSuccess">
+            {{ isLoading ? 'Loading' : 'Create' }}
+          </button>
+          <Transition>
+            <span class="btn btn-success btn-outline" v-if="isSuccess">
+            Well done !
+            </span>
+          </Transition>
         </div>
         <form method="dialog">
           <!-- if there is a button in form, it will close the modal -->
@@ -50,3 +75,6 @@ function toggleModal() {
     </div>
   </dialog>
 </template>
+<style>
+
+</style>

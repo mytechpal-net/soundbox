@@ -197,6 +197,12 @@ func GetUserSb(userId string) *SoundBox {
 	return GetSoundbox(sbId)
 }
 
+func IsUserAuthorized(userId string, sbId string) bool {
+	var authId string
+	err := db.QueryRow("SELECT user_authid FROM user_soundbox where user_authid = $1 and soundbox_id = $2", userId, sbId).Scan(&authId)
+	return err == nil
+}
+
 func GetSoundBoxSounds(sbId string) []Sound {
 	var sounds []Sound
 

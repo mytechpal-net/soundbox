@@ -26,11 +26,13 @@ function logout() {
     <RouterLink class="btn btn-ghost text-xl" to="/config" v-if="userStore.isAdmin">
       Settings
     </RouterLink>
-    <RouterLink class="btn btn-ghost text-xl" to="/upload">
+    <RouterLink class="btn btn-ghost text-xl" to="/upload" v-if="userStore.soundBox">
       Upload
     </RouterLink>
   </div>
   <div class="flex-none gap-2">
+    <div class="stat-title" v-if="userStore.soundBox">Invitation code :</div>
+    <div class="badge badge-accent badge-lg me-5" v-if="userStore.soundBox">{{ userStore.soundBox.Code }}</div>
     <label class="swap">
       <input type="checkbox" v-model="mute"/>
       <SpeakerWaveIcon class="swap-on size-8" />
