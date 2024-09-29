@@ -17,6 +17,11 @@ Do not use sounds that you don't own.
 Front application is in JS with vue.  
 Server is written in Go
 
+## todo
+
+- [] add an indicator of connected clients  
+- [] add stats
+
 ## Deploy
 WIP
 
